@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { getChecklist } from '@/lib/checklist';
 import { addName } from '@/lib/staff';
+import { withPhotoUrls } from '@/lib/api';
 import { isStaff, unauthorized, json } from '@/lib/util';
 
 export const dynamic = 'force-dynamic';
@@ -26,5 +27,5 @@ export async function POST(req, { params }) {
     return json({ error: 'Ce ménage ne peut pas être commencé' }, 409);
   }
   await addName(name);
-  return json({ ok: true });
+  return json(await withPhotoUrls(await db.getCleaning(c.id)));
 }

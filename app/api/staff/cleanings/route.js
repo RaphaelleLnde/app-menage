@@ -1,12 +1,10 @@
 import { db } from '@/lib/db';
-import { maybeSync } from '@/lib/sync';
 import { isStaff, unauthorized, json, todayParis, addDays } from '@/lib/util';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
   if (!isStaff(req)) return unauthorized();
-  await maybeSync();
   const today = todayParis();
   const list = await db.listCleanings({ from: addDays(today, -3), to: addDays(today, 30), statuses: ['planned', 'in_progress', 'done'] });
   // Les ménages terminés ne restent visibles que le jour même.

@@ -53,7 +53,7 @@ export default function StaffCleaning({ params }) {
     setBusy(false);
     if (!r.ok) { setError((await r.json()).error || 'Erreur'); return; }
     rememberName(n);
-    load();
+    setC(await r.json()); // le serveur renvoie directement la checklist : pas de second chargement
   };
 
   const toggle = async (k) => {
