@@ -17,9 +17,9 @@ export async function POST(req, { params }) {
     const items = await getChecklist();
     if (!c.checks.length) {
       // Les points ajoutés par l'hôte pour ce ménage passent en premier
-      const extras = (c.extra_tasks || []).map((t) => ({ room: "Consignes de l'hôte", label: t.label, photo_required: !!t.photo_required }));
+      const extras = (c.extra_tasks || []).map((t) => ({ room: "Consignes de l'hôte", label: t.label, photo_required: !!t.photo_required, required: true }));
       await db.insertChecks([...extras, ...items].map((it, i) => ({
-        cleaning_id: c.id, room: it.room, label: it.label, photo_required: !!it.photo_required, position: i,
+        cleaning_id: c.id, room: it.room, label: it.label, photo_required: !!it.photo_required, required: it.required !== false, position: i,
       })));
     }
     await db.updateCleaning(c.id, { status: 'in_progress', cleaner_name: String(name).trim().slice(0, 40), started_at: new Date().toISOString() });

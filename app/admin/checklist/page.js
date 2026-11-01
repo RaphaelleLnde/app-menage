@@ -9,31 +9,32 @@ export default function ChecklistPage() {
   const items = host.data;
   const [sheet, setSheet] = useState(null); // { index | null, room, label, photo }
   const [msg, setMsg] = useState('');
+  const [err, setErr] = useState(''); // erreur d'enregistrement, affichée en rouge
   const [saving, setSaving] = useState(false);
 
   const rooms = items ? [...new Set(items.map((i) => i.room))] : [];
 
   const save = async (next, note) => {
-    setSaving(true); setMsg('');
+    setSaving(true); setMsg(''); setErr('');
     const r = await fetch('/api/host/checklist', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: next }) });
     const d = await r.json();
     setSaving(false);
-    if (!r.ok) { setMsg(d.error || 'Erreur'); return false; }
+    if (!r.ok) { setErr(`Enregistrement impossible : ${d.error || 'erreur'}`); return false; }
     host.setData(d);
     if (note) setMsg(note);
     return true;
   };
 
-  const openNew = (room) => setSheet({ index: null, room: room ?? (rooms[0] || ''), newRoom: rooms.length === 0, label: '', photo: null });
+  const openNew = (room) => setSheet({ index: null, room: room ?? (rooms[0] || ''), newRoom: rooms.length === 0, label: '', photo: null, required: true });
   const openEdit = (index) => {
     const it = items[index];
-    setSheet({ index, room: it.room, newRoom: false, label: it.label, photo: !!it.photo_required });
+    setSheet({ index, room: it.room, newRoom: false, label: it.label, photo: !!it.photo_required, required: it.required !== false });
   };
 
   const submit = async () => {
     const room = sheet.room.trim();
     const label = sheet.label.trim();
-    const entry = { room, label, photo_required: !!sheet.photo };
+    const entry = { room, label, photo_required: !!sheet.photo, required: sheet.required !== false };
     let next;
     if (sheet.index === null) {
       // On range la nouvelle tâche à la fin de sa pièce
@@ -74,6 +75,7 @@ export default function ChecklistPage() {
           <h1 className="title"><span className="script">À vérifier</span>Checklist</h1>
           <p className="lead">Touchez le bouton + pour ajouter une tâche, ou une tâche pour la modifier. Les ménages déjà commencés gardent leur liste.</p>
           {msg && <div className="ok">{msg}</div>}
+          {err && !sheet && <div className="error">{err}</div>}
 
           {rooms.map((room) => (
             <section key={room} className="card">
@@ -86,6 +88,7 @@ export default function ChecklistPage() {
                   <div className="lbl" onClick={() => openEdit(i)}>
                     <div>{it.label}</div>
                     {it.photo_required && <div className="tag"><IconCamera /> Photo obligatoire</div>}
+                    {it.required === false && <div className="tag" style={{ color: 'var(--muted)' }}>Pas d'alerte si non cochée</div>}
                   </div>
                   <button className="iconbtn" onClick={() => move(i, -1)} aria-label="Monter" disabled={saving}><IconUp /></button>
                   <button className="iconbtn" onClick={() => move(i, 1)} aria-label="Descendre" disabled={saving}><IconDown /></button>
@@ -128,6 +131,16 @@ export default function ChecklistPage() {
                   </div>
                 </div>
 
+                <div className="field">
+                  <span className="field-label">M'alerter si elle n'est pas cochée ?</span>
+                  <div className="seg">
+                    <button className={sheet.required !== false ? 'on' : ''} onClick={() => setSheet({ ...sheet, required: true })}>Oui, à vérifier</button>
+                    <button className={sheet.required === false ? 'on' : ''} onClick={() => setSheet({ ...sheet, required: false })}>Non, évident</button>
+                  </div>
+                  <p className="muted small" style={{ margin: '6px 0 0' }}>« Non » pour les gestes évidents (fermer la porte, éteindre les lumières) : la tâche reste dans la liste, mais si elle n'est pas cochée, tu n'es pas alertée.</p>
+                </div>
+
+                {err && <div className="error">{err}</div>}
                 <button className="primary big" onClick={submit} disabled={!valid || saving} style={{ marginTop: 8 }}>
                   {sheet.index === null ? 'Ajouter la tâche' : 'Enregistrer'}
                 </button>
