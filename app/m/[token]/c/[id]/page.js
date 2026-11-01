@@ -106,7 +106,7 @@ export default function StaffCleaning({ params }) {
     const d = await r.json();
     if (!r.ok) { setError(d.error || 'Erreur'); setMissing(d.missing || []); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     storage()?.removeItem(`menage_notes_${id}`);
-    load();
+    setC((cur) => ({ ...cur, status: 'done', completed_at: d.completed_at, completed_by: d.completed_by })); // pas de rechargement
   };
 
   const shell = (body) => (
@@ -251,7 +251,7 @@ export default function StaffCleaning({ params }) {
       </section>
 
       <div className="sticky-bottom"><div>
-        <button className="primary big" onClick={finish} disabled={busy}>Terminer le ménage</button>
+        <button className="primary big" onClick={finish} disabled={busy}>{busy ? 'Envoi…' : 'Terminer le ménage'}</button>
       </div></div>
 
       {zoom && <div className="lightbox" onClick={() => setZoom(null)}><img src={zoom} alt="" /></div>}

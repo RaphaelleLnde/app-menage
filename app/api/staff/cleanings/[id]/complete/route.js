@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { missingForCompletion } from '@/lib/api';
 import { notifyHost } from '@/lib/push';
+import { waitUntil } from '@vercel/functions';
 import { isStaff, unauthorized, json } from '@/lib/util';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +25,8 @@ export async function POST(req, { params }) {
   const duree = `${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, '0')}`;
   // Deux notifications différentes : ménage terminé, ou ménage terminé avec des remarques à vérifier
   const remarks = [note && `« ${note.slice(0, 120)}${note.length > 120 ? '…' : ''} »`, otherPhotos && `${otherPhotos} photo${otherPhotos > 1 ? 's' : ''} de problème`].filter(Boolean).join(' · ');
-  await notifyHost(hasRemarks ? {
+  // La notification part en arrière-plan : la personne n'attend pas l'envoi
+  waitUntil(notifyHost(hasRemarks ? {
     title: 'Remarques à vérifier · ménage terminé',
     body: `${who} a terminé (${duree}). ${remarks}`,
     url: `/admin/c/${c.id}`,
@@ -32,6 +34,6 @@ export async function POST(req, { params }) {
     title: 'Ménage terminé',
     body: `${who} a terminé le ménage (${duree}, ${c.photos.length} photo${c.photos.length > 1 ? 's' : ''}).`,
     url: `/admin/c/${c.id}`,
-  }).catch((e) => console.error(e));
-  return json({ ok: true });
+  }).catch((e) => console.error(e)));
+  return json({ ok: true, completed_at: done.completed_at, completed_by: who });
 }
