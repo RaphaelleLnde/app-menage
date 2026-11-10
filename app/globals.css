@@ -79,7 +79,7 @@ button.ghost { border-color: transparent; }
 button:disabled { opacity: .45; cursor: default; }
 
 /* Champs */
-input[type=text], input[type=password], input[type=date], textarea, select {
+input[type=text], input[type=password], input[type=date], input[type=time], input[type=tel], input[type=email], textarea, select {
   font: inherit; width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
   background: var(--white); color: var(--ink);
 }
@@ -296,9 +296,41 @@ div.field { margin: 14px 0 18px; }
 .horaires.light { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); color: #F3EEE6; }
 .horaires.light .ico { color: #F3D9A8; }
 .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.time-row input { width: 100%; }
+.time-row > * { min-width: 0; }
+.time-row input { width: 100%; min-width: 0; }
 
 /* Commentaire d'évaluation */
 .review { background: var(--cream, #F3EEE6); border-radius: 8px; padding: 12px; margin-top: 12px; }
 .review textarea { min-height: 120px; font-size: 14.5px; }
 .review .stars { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+
+/* Formulaire voyageur (fiche de police) */
+.sigpad { display: block; width: 100%; height: 150px; background: var(--white); border: 1.5px dashed var(--line); border-radius: 8px; touch-action: none; }
+.langsel { width: auto; min-height: 36px; padding: 4px 8px; font-size: 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); color: var(--ink); }
+.fiche { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-top: 16px; }
+.fiche h3 { margin-top: 0; }
+.fiche dl { display: grid; grid-template-columns: 42% 1fr; gap: 6px 10px; margin: 0; font-size: 14px; }
+.fiche dt { color: var(--muted); }
+.fiche dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; white-space: pre-line; }
+.fiche .sig { max-width: 260px; height: auto; border-bottom: 1px solid var(--line); margin-top: 8px; }
+.fstat { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.fstat.fs-ok { background: var(--ok-soft); color: var(--ok); }
+.fstat.fs-fr { background: var(--blue-soft); color: var(--blue); }
+.fstat.fs-no { background: var(--gold-soft); color: var(--gold); }
+@media print {
+  .top, .noprint, .back { display: none !important; }
+  body { background: #fff; }
+  .fiche { break-inside: avoid; border: 1px solid #999; }
+}
+/* Pastille fiche de police dans les barres du calendrier */
+.fdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: 0; box-shadow: 0 0 0 1.5px #fff; }
+.fdot.fd-ok { background: #2F9E5B; }
+.fdot.fd-no { background: #F2B33D; }
+.legend .fdot { width: 9px; height: 9px; margin-right: 5px; }
+.fbox { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #FBFAF7; }
+.fbox .fiche { margin-top: 10px; padding: 12px; }
+.privacy { font-size: 13px; color: var(--ok); background: var(--ok-soft); border-radius: 8px; padding: 8px 12px; margin: 0 0 14px; }
+.phone-row { display: grid; grid-template-columns: 112px 1fr; gap: 8px; }
+.phone-row select { padding-left: 8px; padding-right: 4px; }
+.phone-row input { width: 100%; min-width: 0; }
+[dir=rtl] .wrap, [dir=rtl] .top { text-align: right; }

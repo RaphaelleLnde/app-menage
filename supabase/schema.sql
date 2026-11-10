@@ -115,6 +115,25 @@ alter table cleanings add column if not exists host_memo text;       -- remarque
 alter table push_subscriptions add column if not exists role text not null default 'host';
 
 
+-- Fiches de police des voyageurs
+create table if not exists guest_forms (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  arrival date not null,
+  departure date not null,
+  lead_name text not null,           -- nom de la personne qui a réservé
+  lead_phone text,                   -- son téléphone
+  all_french boolean not null default false,
+  lang text,
+  travellers jsonb not null default '[]'::jsonb,   -- une fiche par voyageur étranger
+  children jsonb not null default '[]'::jsonb,     -- enfants de moins de 15 ans
+  signatures jsonb not null default '[]'::jsonb    -- signatures (images), dans l'ordre des voyageurs
+);
+create index if not exists guest_forms_arrival_idx on guest_forms (arrival);
+-- Données personnelles : aucune lecture possible depuis l'extérieur, seule l'application y accède
+alter table guest_forms enable row level security;
+alter table cleanings add column if not exists guest_phone text;
+
 -- Stockage privé des photos
 insert into storage.buckets (id, name, public)
 values ('photos', 'photos', false)

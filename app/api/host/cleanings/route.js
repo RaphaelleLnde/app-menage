@@ -14,8 +14,8 @@ export async function GET(req) {
   // On va chercher 40 jours plus loin pour retrouver les séjours en cours pendant la semaine affichée (départ plus tard).
   await maybeSync();
   let list = await db.listCleanings({ from, to: addDays(to, 40) });
-  // La conciergerie ne voit pas les notes privées de l'hôte ni les infos de réservation
-  if (getRole(req) === 'concierge') list = list.map(({ host_memo, resa_code, guest_phone4, ...c }) => c);
+  // la conciergerie ne voit pas les notes privées de l’hôte ni les infos du voyageur
+  if (getRole(req) === 'concierge') list = list.map(({ host_memo, resa_code, guest_phone4, guest_phone, guest_name, ...c }) => c);
   return json({ today: todayParis(), cleanings: list, staffPath: process.env.STAFF_TOKEN ? `/m/${process.env.STAFF_TOKEN}` : null });
 }
 

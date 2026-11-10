@@ -1,5 +1,6 @@
 import { syncCalendar } from '@/lib/sync';
 import { purgeOldVideos } from '@/lib/media';
+import { purgeOldForms } from '@/lib/fiches';
 import { safeEqual, json } from '@/lib/util';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,9 @@ export async function GET(req) {
     const sync = await syncCalendar();
     // Suppression automatique des vidéos trop anciennes (place limitée sur le stockage gratuit)
     const videosDeleted = await purgeOldVideos().catch((e) => { console.error(e); return 0; });
-    return json({ ...sync, videosDeleted });
+    // Fiches de police : conservées 6 mois après le départ, puis détruites
+    const formsDeleted = await purgeOldForms().catch((e) => { console.error(e); return 0; });
+    return json({ ...sync, videosDeleted, formsDeleted });
   } catch (e) {
     return json({ error: e.message }, 502);
   }

@@ -10,6 +10,8 @@ import { IconCopy } from '@/app/components/icons';
 import { stateInfo, stateLabel } from '@/lib/arrival';
 import { buildReview } from '@/lib/review';
 import Smiley from '@/app/components/Smiley';
+import { formsFor, guestUrl, copyText as copyLink } from '@/app/components/fiches-client';
+import FicheView from '@/app/components/FicheView';
 
 const DN = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 const PLATFORM = {
@@ -50,6 +52,12 @@ export default function Reservations() {
   const gridEnd = addDays(lastDay, (7 - ((new Date(lastDay + 'T12:00:00Z').getUTCDay() + 6) % 7) - 1));
   const host = useHostData(`/api/host/cleanings?from=${gridStart}&to=${gridEnd}`);
   const d = host.data;
+  // Fiches de police (hôte uniquement)
+  const [fiches, setFiches] = useState(null);
+  useEffect(() => {
+    if (concierge !== false) return;
+    fetch(`/api/host/fiches?from=${addDays(gridStart, -60)}&to=${gridEnd}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setFiches).catch(() => {});
+  }, [gridStart, gridEnd, concierge]);
   const today = d?.today || parisToday();
 
   const days = useMemo(() => {
@@ -106,7 +114,7 @@ export default function Reservations() {
                 return (
                   <span key={s.id}>
                     <span className={`mbar ${pf.cls} ${start ? 'start' : ''} ${end ? 'end' : ''}`} />
-                    {showLabel && <em className="mlabel" style={{ left: start ? '50%' : 0, width: `calc(${(span - (start ? 0.5 : 0)) * 100}% + ${Math.floor(span)}px)` }}>{s.guest_name || pf.label}</em>}
+                    {showLabel && <em className="mlabel" style={{ left: start ? '50%' : 0, width: `calc(${(span - (start ? 0.5 : 0)) * 100}% + ${Math.floor(span)}px)` }}>{fiches && <i className={`fdot ${formsFor(s, fiches.forms).length ? 'fd-ok' : 'fd-no'}`} />}{s.guest_name || pf.label}</em>}
                   </span>
                 );
               })}
@@ -117,14 +125,17 @@ export default function Reservations() {
       <div className="legend">
         <span><i style={{ background: 'var(--airbnb)' }} />Airbnb</span>
         <span><i style={{ background: 'var(--booking)' }} />Booking</span>
+        {fiches && <span><i className="fdot fd-ok" />Fiche de police reçue</span>}
+        {fiches && <span><i className="fdot fd-no" />Pas encore</span>}
       </div>
+      {!concierge && <Link href="/admin/fiches" className="btn small" style={{ marginTop: 8, marginRight: 8 }}>Fiches de police et lien voyageurs</Link>}
       {month !== today.slice(0, 7) && <button className="small ghost" style={{ marginTop: 6 }} onClick={() => setMonth(today.slice(0, 7))}>Revenir à ce mois-ci</button>}
 
       {sel && (
         <>
           <h2>{fmtDay(sel, today)}</h2>
           {selStays.length === 0 && <p className="muted">Logement libre ce jour-là.</p>}
-          {selStays.map((s) => <StayCard key={s.id} s={s} sel={sel} today={today} concierge={concierge} reload={host.reload} />)}
+          {selStays.map((s) => <StayCard key={s.id} s={s} sel={sel} today={today} concierge={concierge} reload={host.reload} fiches={fiches} />)}
         </>
       )}
     </HostPage>
@@ -186,7 +197,49 @@ function ReviewBox({ s }) {
   );
 }
 
-function StayCard({ s, sel, today, concierge, reload }) {
+// Fiche de police du séjour : complétée, voyageurs français, ou pas encore remplie.
+// La fiche s'affiche directement dans la carte de la réservation.
+function FicheStatus({ s, fiches }) {
+  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [full, setFull] = useState(null); // fiches complètes (avec signatures)
+  if (!fiches) return null;
+  const list = formsFor(s, fiches.forms);
+  const nb = list.reduce((n, f) => n + f.travellers.length, 0);
+  const toggle = async () => {
+    if (!open && !full) {
+      const rows = await Promise.all(list.map((f) => fetch(`/api/host/fiches/${f.id}`, { cache: 'no-store' }).then((r) => r.json())));
+      setFull(rows);
+    }
+    setOpen(!open);
+  };
+  return (
+    <div className="fbox">
+      <div className="row between wrap-row" style={{ gap: 8 }}>
+        <span className="small" style={{ fontWeight: 600 }}>Fiche de police</span>
+        {list.length === 0 ? <span className="fstat fs-no">Pas encore remplie</span>
+          : nb > 0 ? <span className="fstat fs-ok">Complétée · {nb} voyageur{nb > 1 ? 's' : ''} étranger{nb > 1 ? 's' : ''}</span>
+          : <span className="fstat fs-ok">Voyageurs français, rien à faire</span>}
+      </div>
+      {list.length === 0 ? (
+        <div className="row wrap-row" style={{ marginTop: 8 }}>
+          <button className="small" onClick={async () => { if (await copyLink(guestUrl(fiches))) { setCopied(true); setTimeout(() => setCopied(false), 2000); } }}><IconCopy /> {copied ? 'Lien copié' : 'Copier le lien à envoyer'}</button>
+        </div>
+      ) : (
+        <>
+          <p className="muted small" style={{ margin: '4px 0 0' }}>Remplie par {list.map((f) => f.lead_name + (f.lead_phone ? ` (${f.lead_phone})` : '')).join(', ')}</p>
+          <div className="row wrap-row" style={{ marginTop: 8 }}>
+            <button className="small" onClick={toggle}>{open ? 'Masquer la fiche' : 'Voir la fiche'}</button>
+            {list.map((f) => <a key={f.id} className="btn small ghost" href={`/admin/fiches/${f.id}`} target="_blank" rel="noopener">Imprimer / PDF</a>)}
+          </div>
+          {open && full && full.map((f) => <FicheView key={f.id} f={f} />)}
+        </>
+      )}
+    </div>
+  );
+}
+
+function StayCard({ s, sel, today, concierge, reload, fiches }) {
   const pfKey = platformOf(s);
   const pf = PLATFORM[pfKey];
   const n = diffDays(s.checkin_date, s.date);
@@ -222,7 +275,13 @@ function StayCard({ s, sel, today, concierge, reload }) {
           {s.checkin_date === sel ? 'Arrivée ce jour' : s.date === sel ? 'Départ ce jour' : 'En cours de séjour'}
         </span>
       </div>
-      <p style={{ margin: '10px 0 0', fontWeight: 600 }}>Du {short(s.checkin_date)} au {short(s.date)}</p>
+      {s.guest_name && (
+        <p style={{ margin: '10px 0 0' }}>
+          <b>{s.guest_name}</b>
+          {!concierge && s.guest_phone && <> · <a href={`tel:${s.guest_phone.replace(/[^+\d]/g, '')}`}>{s.guest_phone}</a></>}
+        </p>
+      )}
+      <p style={{ margin: s.guest_name ? '2px 0 0' : '10px 0 0', fontWeight: 600 }}>Du {short(s.checkin_date)} au {short(s.date)}</p>
       <p className="muted small" style={{ margin: '2px 0 0' }}>
         {n} nuit{n > 1 ? 's' : ''}
         {!concierge && s.resa_code && <> · Réservation {s.resa_code}</>}
@@ -253,6 +312,8 @@ function StayCard({ s, sel, today, concierge, reload }) {
           {msg && <p className="small" style={{ margin: '6px 0 0', color: 'var(--ok)' }}>{msg}</p>}
         </div>
       )}
+
+      {!concierge && <FicheStatus s={s} fiches={fiches} />}
 
       {!concierge && (
         <label className="field" style={{ margin: '12px 0 6px' }}>

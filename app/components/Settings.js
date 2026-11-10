@@ -153,6 +153,12 @@ export default function Settings({ data, reload }) {
       </div>
 
       <div className="card">
+        <h3>Fiches de police</h3>
+        <p className="muted small" style={{ marginTop: 0 }}>Le lien à envoyer aux voyageurs, et les fiches reçues.</p>
+        <a className="btn small primary" href="/admin/fiches">Ouvrir les fiches de police</a>
+      </div>
+
+      <div className="card">
         <h3>Vidéos</h3>
         <p className="muted small" style={{ marginTop: 0 }}>Les vidéos prennent beaucoup de place (jusqu'à 50 Mo chacune, 1 Go au total sur l'offre gratuite de stockage). Télécharge celles que tu veux garder : elles sont supprimées automatiquement après le délai choisi. Les photos, elles, sont toujours gardées.</p>
         <div className="chips">

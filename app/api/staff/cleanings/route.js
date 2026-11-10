@@ -17,7 +17,7 @@ export async function GET(req) {
 }
 
 // Le personnel ne voit pas les notes privées de l'hôte
-function strip({ host_memo, resa_code, guest_phone4, guest_name, ...c }) { return c; }
+function strip({ host_memo, resa_code, guest_phone4, guest_name, guest_phone, ...c }) { return c; }
 
 // Ménage imprévu (hors calendrier)
 export async function POST(req) {

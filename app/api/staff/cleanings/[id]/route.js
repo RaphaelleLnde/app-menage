@@ -10,6 +10,6 @@ export async function GET(req, { params }) {
   const c = await db.getCleaning(params.id);
   if (!c) return json({ error: 'Ménage introuvable' }, 404);
   const rows = await db.listCleanings({ from: c.date, to: addDays(c.date, 60) });
-  const { host_memo, resa_code, guest_phone4, guest_name, ...rest } = await withPhotoUrls(c);
+  const { host_memo, resa_code, guest_phone4, guest_name, guest_phone, ...rest } = await withPhotoUrls(c);
   return json({ ...rest, ...cleaningTimes(c, rows) });
 }

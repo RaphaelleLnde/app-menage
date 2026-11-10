@@ -8,7 +8,7 @@ import { waitUntil } from '@vercel/functions';
 // La conciergerie ne voit pas les notes privées de l'hôte ni les infos de réservation
 function forRole(req, c) {
   if (getRole(req) !== 'concierge') return c;
-  const { host_memo, resa_code, guest_phone4, ...rest } = c;
+  const { host_memo, resa_code, guest_phone4, guest_phone, guest_name, ...rest } = c;
   return rest;
 }
 const longDay = (iso) => new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(iso + 'T00:00:00Z'));
