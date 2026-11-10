@@ -25,12 +25,24 @@ export default function Settings({ data, reload }) {
   }, []);
 
   const [names, setNames] = useState(data.staffNames || []);
+  const [door, setDoor] = useState(data.door?.code || '');
+  const [savedDoor, setSavedDoor] = useState(data.door?.code || '');
+  const saveDoor = async () => {
+    if (!confirm(`Nouveau code de la porte de l'immeuble : ${door.trim()} ?`)) return;
+    const r = await fetch('/api/host/keybox', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ door }) });
+    if (r.ok) { const k = await r.json(); setSavedDoor(k.code); setDoor(k.code); setMsg("Code de la porte de l'immeuble mis à jour."); }
+  };
   const [code, setCode] = useState(data.keybox?.code || '');
   const [savedCode, setSavedCode] = useState(data.keybox?.code || '');
   const saveCode = async () => {
     if (!confirm(`Nouveau code de la boîte à clés : ${code.trim()} ?`)) return;
     const r = await fetch('/api/host/keybox', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
     if (r.ok) { const k = await r.json(); setSavedCode(k.code); setCode(k.code); setMsg('Code de la boîte à clés mis à jour.'); }
+  };
+  const [videoDays, setVideoDays] = useState(data.videoDays ?? 30);
+  const saveVideoDays = async (v) => {
+    const r = await fetch('/api/host/keybox', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videoDays: v }) });
+    if (r.ok) { setVideoDays(v); setMsg(v ? `Les vidéos seront supprimées automatiquement après ${v} jours.` : 'Les vidéos seront gardées sans limite.'); }
   };
   const removeName = async (n) => {
     if (!confirm(`Retirer « ${n} » de la liste ? Les ménages déjà faits gardent son nom.`)) return;
@@ -109,6 +121,15 @@ export default function Settings({ data, reload }) {
       </div>
 
       <div className="card">
+        <h3>Porte de l'immeuble</h3>
+        <p className="muted small" style={{ marginTop: 0 }}>Code du digicode, affiché au personnel dans « Accès au logement ».</p>
+        <div className="row">
+          <input type="text" inputMode="numeric" value={door} onChange={(e) => setDoor(e.target.value)} style={{ maxWidth: 160, fontSize: 20, letterSpacing: '.2em', fontWeight: 600 }} />
+          <button className="small primary" onClick={saveDoor} disabled={!door.trim() || door.trim() === savedDoor}>Enregistrer</button>
+        </div>
+      </div>
+
+      <div className="card">
         <h3>Boîte à clés</h3>
         <p className="muted small" style={{ marginTop: 0 }}>Code affiché au personnel dans « Accès au logement ». Si tu changes le code, mets-le à jour ici : la personne verra « Code changé le … » pendant deux semaines.</p>
         <div className="row">
@@ -131,11 +152,24 @@ export default function Settings({ data, reload }) {
         </ul>
       </div>
 
+      <div className="card">
+        <h3>Vidéos</h3>
+        <p className="muted small" style={{ marginTop: 0 }}>Les vidéos prennent beaucoup de place (jusqu'à 50 Mo chacune, 1 Go au total sur l'offre gratuite de stockage). Télécharge celles que tu veux garder : elles sont supprimées automatiquement après le délai choisi. Les photos, elles, sont toujours gardées.</p>
+        <div className="chips">
+          {[14, 30, 60, 90, 0].map((v) => (
+            <button key={v} className={`chip ${videoDays === v ? 'on' : ''}`} onClick={() => saveVideoDays(v)}>{v ? `${v} jours` : 'Toujours'}</button>
+          ))}
+        </div>
+        <p className="muted small" style={{ margin: '10px 0 0' }}>Vidéos stockées en ce moment : {Math.round((data.videoBytes || 0) / 1048576)} Mo.</p>
+      </div>
+
       </>}
 
       <div className="card">
         <h3>Notifications sur ce téléphone</h3>
-        <p className="muted small" style={{ marginTop: 0 }}>Une notification à la fin de chaque ménage, avec une alerte « Remarques à vérifier » quand la personne a laissé un commentaire ou une photo de problème.</p>
+        <p className="muted small" style={{ marginTop: 0 }}>{concierge
+          ? "Une notification à la fin de chaque ménage, et quand l'hôte note un départ tardif ou une arrivée anticipée."
+          : 'Une notification à la fin de chaque ménage, avec une alerte « Remarques à vérifier » quand la personne a laissé un commentaire ou une photo de problème.'}</p>
         {!data.pushConfigured && <p className="error">Les clés de notification (VAPID) ne sont pas configurées.</p>}
         {pushState === 'ios-install' && <p className="muted">Sur iPhone : ouvre cette page dans Safari, touche Partager puis « Sur l'écran d'accueil », puis ouvre l'application depuis la nouvelle icône pour activer les notifications.</p>}
         {pushState === 'unsupported' && <p className="muted">Ce navigateur ne gère pas les notifications.</p>}

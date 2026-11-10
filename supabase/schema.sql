@@ -100,7 +100,23 @@ alter table photos add column if not exists area text;                          
 update checklist_items set required = false
 where label in ('Aérer le logement pendant le ménage', 'Fenêtres fermées, chauffage ou clim en mode éco', 'Lumières éteintes, porte fermée à clé');
 
+-- Vidéos, horaires, remarques, notifications conciergerie
+-- Vidéos rangées avec les photos
+alter table photos add column if not exists kind text not null default 'photo';   -- 'photo' ou 'video'
+alter table photos add column if not exists content_type text;
+alter table photos alter column sha256 drop not null;                              -- pas d'empreinte pour les vidéos
+
+-- Horaires particuliers et remarques privées sur la réservation
+alter table cleanings add column if not exists checkin_time text;    -- arrivée anticipée, ex. 13:00
+alter table cleanings add column if not exists checkout_time text;   -- départ tardif, ex. 13:00
+alter table cleanings add column if not exists host_memo text;       -- remarques de l'hôte (non visibles par la conciergerie)
+
+-- Qui reçoit les notifications : l'hôte ou la conciergerie
+alter table push_subscriptions add column if not exists role text not null default 'host';
+
+
 -- Stockage privé des photos
 insert into storage.buckets (id, name, public)
 values ('photos', 'photos', false)
 on conflict (id) do nothing;
+update storage.buckets set file_size_limit = 52428800 where id = 'photos';

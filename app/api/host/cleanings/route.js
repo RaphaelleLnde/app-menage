@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { isHost, isViewer, unauthorized, json, todayParis, addDays } from '@/lib/util';
+import { isHost, isViewer, getRole, unauthorized, json, todayParis, addDays } from '@/lib/util';
 import { maybeSync } from '@/lib/sync';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +13,9 @@ export async function GET(req) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) return json({ error: 'Période invalide' }, 400);
   // On va chercher 40 jours plus loin pour retrouver les séjours en cours pendant la semaine affichée (départ plus tard).
   await maybeSync();
-  const list = await db.listCleanings({ from, to: addDays(to, 40) });
+  let list = await db.listCleanings({ from, to: addDays(to, 40) });
+  // La conciergerie ne voit pas les notes privées de l'hôte ni les infos de réservation
+  if (getRole(req) === 'concierge') list = list.map(({ host_memo, resa_code, guest_phone4, ...c }) => c);
   return json({ today: todayParis(), cleanings: list, staffPath: process.env.STAFF_TOKEN ? `/m/${process.env.STAFF_TOKEN}` : null });
 }
 

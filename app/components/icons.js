@@ -15,3 +15,7 @@ export const IconTrash = (p) => <S {...p}><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h
 export const IconLeft = (p) => <S {...p}><path d="M15 5l-7 7 7 7" /></S>;
 export const IconRight = (p) => <S {...p}><path d="M9 5l7 7-7 7" /></S>;
 export const IconBed = (p) => <S {...p}><path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5" /><circle cx="7" cy="11" r="1.8" /></S>;
+export const IconVideo = (p) => <S {...p}><rect x="3" y="6.5" width="12.5" height="11" rx="1.5" /><path d="M15.5 10.5l5-3v9l-5-3" /></S>;
+export const IconDownload = (p) => <S {...p}><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14" /></S>;
+export const IconClock = (p) => <S {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></S>;
+export const IconCopy = (p) => <S {...p}><rect x="8.5" y="8.5" width="11" height="11" rx="1.5" /><path d="M15.5 8.5V5.5a1 1 0 0 0-1-1h-9a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3" /></S>;

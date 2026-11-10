@@ -2,7 +2,8 @@ import { db } from '@/lib/db';
 import { maybeSync } from '@/lib/sync';
 import { getChecklist } from '@/lib/checklist';
 import { getNames } from '@/lib/staff';
-import { getKeybox } from '@/lib/property';
+import { getKeybox, getDoorCode } from '@/lib/property';
+import { getVideoDays } from '@/lib/media';
 import { isHost, isViewer, getRole, unauthorized, json, todayParis, addDays } from '@/lib/util';
 
 export const dynamic = 'force-dynamic';
@@ -11,13 +12,16 @@ export async function GET(req) {
   if (!isViewer(req)) return unauthorized();
   await maybeSync();
   const today = todayParis();
-  const [upcoming, history, lastSync, checklist, staffNames, keybox] = await Promise.all([
+  const [upcoming, history, lastSync, checklist, staffNames, keybox, door, videoDays, videoBytes] = await Promise.all([
     db.listCleanings({ from: today, to: addDays(today, 90), statuses: ['planned', 'in_progress', 'cancelled'] }),
     db.listHistory(60),
     db.getState('last_sync'),
     getChecklist(),
     getNames(),
     getKeybox(),
+    getDoorCode(),
+    getVideoDays(),
+    db.videoBytes().catch(() => 0),
   ]);
   const role = getRole(req);
   return json({
@@ -29,6 +33,9 @@ export async function GET(req) {
     lastSync,
     staffNames,
     keybox,
+    door,
+    videoDays,
+    videoBytes,
     checklistCount: checklist.length,
     checklistRooms: new Set(checklist.map((i) => i.room)).size,
     staffPath: process.env.STAFF_TOKEN ? `/m/${process.env.STAFF_TOKEN}` : null,

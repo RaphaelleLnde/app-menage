@@ -284,3 +284,21 @@ div.field { margin: 14px 0 18px; }
 .mood svg { flex: none; }
 .mood.on { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
 .moods.picked .mood:not(.on) svg { opacity: .45; }
+
+/* Vidéos */
+.vid { display: block; width: 100%; max-height: 360px; background: #000; border-radius: 8px; margin: 0 0 10px; }
+.dl { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--blue); text-decoration: none; margin-top: 4px; }
+.dl .ico { width: 15px; height: 15px; }
+
+/* Départ tardif / arrivée anticipée */
+.horaires { display: flex; gap: 8px; align-items: flex-start; background: #FBF1E2; border: 1px solid #EBD3AE; color: #6B4A16; border-radius: 8px; padding: 8px 10px; font-size: 13.5px; line-height: 1.35; }
+.horaires .ico { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--gold); }
+.horaires.light { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); color: #F3EEE6; }
+.horaires.light .ico { color: #F3D9A8; }
+.time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.time-row input { width: 100%; }
+
+/* Commentaire d'évaluation */
+.review { background: var(--cream, #F3EEE6); border-radius: 8px; padding: 12px; margin-top: 12px; }
+.review textarea { min-height: 120px; font-size: 14.5px; }
+.review .stars { font-size: 13px; color: var(--muted); margin: 6px 0 0; }

@@ -3,7 +3,10 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { STATUS, fmtDay, fmtTime, turnoverLabel, compressImage, storage } from '@/app/components/client-utils';
 import TopBar from '@/app/components/TopBar';
-import { IconCamera, IconCheck } from '@/app/components/icons';
+import { IconCamera, IconCheck, IconVideo } from '@/app/components/icons';
+import Horaires from '@/app/components/Horaires';
+
+const VIDEO_MAX = 50 * 1024 * 1024; // 50 Mo, limite du stockage
 import NamePicker from '@/app/components/NamePicker';
 import { ARRIVAL_AREAS, ARRIVAL_STATES } from '@/lib/arrival';
 import Smiley from '@/app/components/Smiley';
@@ -22,6 +25,9 @@ export default function StaffCleaning({ params }) {
   const [noteSeen, setNoteSeen] = useState(true); // consigne de l'hôte déjà lue sur ce téléphone
   const [arrState, setArrState] = useState(null);   // état du logement à l'arrivée
   const [arrNote, setArrNote] = useState('');
+  const [vid, setVid] = useState({}); // envoi de vidéo en cours, par moment : { progress, error, file }
+  const videoInput = useRef(null);
+  const videoPhase = useRef(null);
   const fileInput = useRef(null);
   const target = useRef(null);
   const headers = { 'x-staff-token': token };
@@ -57,7 +63,8 @@ export default function StaffCleaning({ params }) {
     setBusy(false);
     if (!r.ok) { setError((await r.json()).error || 'Erreur'); return; }
     rememberName(n);
-    setC(await r.json()); // le serveur renvoie directement la checklist : pas de second chargement
+    const started = await r.json();
+    setC((cur) => ({ ...cur, ...started })); // le serveur renvoie directement la checklist : pas de second chargement
   };
 
   const toggle = async (k) => {
@@ -102,15 +109,53 @@ export default function StaffCleaning({ params }) {
     }
   };
 
+  // Vidéo globale : envoyée directement vers le stockage (trop lourde pour passer par l'application)
+  const pickVideo = (phase) => { videoPhase.current = phase; videoInput.current.value = ''; videoInput.current.click(); };
+  const onVideo = (e) => { const f = e.target.files?.[0]; if (f) uploadVideo(videoPhase.current, f); };
+  const uploadVideo = async (phase, file) => {
+    const set = (v) => setVid((cur) => ({ ...cur, [phase]: v }));
+    if (file.size > VIDEO_MAX) {
+      set({ error: `Vidéo trop lourde (${Math.round(file.size / 1048576)} Mo, maximum 50 Mo). Refais une vidéo plus courte, 30 à 40 secondes.` });
+      return;
+    }
+    set({ progress: 0, file });
+    try {
+      const type = file.type || 'video/mp4';
+      const r = await fetch(`/api/staff/cleanings/${id}/video`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ phase, size: file.size, type }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Erreur');
+      await new Promise((resolve, reject) => {
+        const x = new XMLHttpRequest();
+        x.open('PUT', d.uploadUrl);
+        x.setRequestHeader('Content-Type', type);
+        x.upload.onprogress = (ev) => ev.lengthComputable && set({ progress: ev.loaded / ev.total, file });
+        x.onload = () => (x.status < 300 ? resolve() : reject(new Error(`Envoi refusé (${x.status}), réessaie.`)));
+        x.onerror = () => reject(new Error("Le réseau a coupé pendant l'envoi, réessaie."));
+        x.send(file);
+      });
+      const r2 = await fetch(`/api/staff/cleanings/${id}/video`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'done', phase, path: d.path, size: file.size, type, name, clientTime: new Date().toISOString() }) });
+      const v = await r2.json();
+      if (!r2.ok) throw new Error(v.error || 'Erreur');
+      setC((cur) => ({ ...cur, videos: [...(cur.videos || []), v] }));
+      set(null);
+    } catch (err) {
+      set({ error: err.message || "Échec de l'envoi", file });
+    }
+  };
+  const videoBusy = (phase) => vid[phase] && !vid[phase].error;
+  const hasVideo = (phase) => (c?.videos || []).some((v) => v.phase === phase);
+
   const finish = async () => {
     setError(''); setMissing([]);
     if (pending.length) { setError('Attends que toutes les photos soient envoyées.'); return; }
+    if (videoBusy('menage')) { setError("Attends la fin de l'envoi de la vidéo."); return; }
     // Tâches non cochées ou photos obligatoires manquantes : on prévient, puis on laisse valider
     const unchecked = c.checks.filter((k) => !k.checked && k.required !== false).length;
     const noPhoto = c.checks.filter((k) => k.checked && k.photo_required && !c.photos.some((p) => p.check_id === k.id)).length;
     const parts = [
       unchecked && `${unchecked} tâche${unchecked > 1 ? 's' : ''} non cochée${unchecked > 1 ? 's' : ''}`,
       noPhoto && `${noPhoto} photo${noPhoto > 1 ? 's' : ''} obligatoire${noPhoto > 1 ? 's' : ''} manquante${noPhoto > 1 ? 's' : ''}`,
+      !hasVideo('menage') && 'pas de vidéo du logement après le ménage',
     ].filter(Boolean);
     const msg = parts.length
       ? `${parts.join(' et ')}.\n\nSouhaitez-vous valider le ménage quand même ? L'hôte en sera informée.`
@@ -143,6 +188,7 @@ export default function StaffCleaning({ params }) {
         <span className={`badge ${c.status}`}>{STATUS[c.status]}</span>
         {c.next_checkin === c.date ? <b className="small" style={{ color: 'var(--gold)' }}>Nouveaux voyageurs le jour même</b> : turnoverLabel(c) && <span className="muted small">{turnoverLabel(c)}</span>}
       </div>
+      <Horaires late={c.late_checkout} early={c.early_checkin} style={{ marginTop: 12 }} />
     </>
   );
 
@@ -222,7 +268,36 @@ export default function StaffCleaning({ params }) {
       </div>
     </div>
   );
-  const fileInputEl = <input ref={fileInput} type="file" accept="image/*" capture="environment" hidden onChange={onFiles} />;
+  const fileInputEl = (
+    <>
+      <input ref={fileInput} type="file" accept="image/*" capture="environment" hidden onChange={onFiles} />
+      <input ref={videoInput} type="file" accept="video/*" capture="environment" hidden onChange={onVideo} />
+    </>
+  );
+  // Carte « vidéo globale » (appelée comme une fonction : la vidéo ne se recharge pas à chaque case cochée)
+  const videoCard = (phase, title, hint) => {
+    const list = (c.videos || []).filter((v) => v.phase === phase);
+    const st = vid[phase];
+    const pct = st && !st.error ? Math.round((st.progress || 0) * 100) : 0;
+    return (
+      <section className="card">
+        <div className="row between">
+          <h3 style={{ margin: 0 }}>{title}</h3>
+          {list.length > 0 ? <span className="badge done">Vidéo envoyée</span> : <span className="req">Demandée</span>}
+        </div>
+        <p className="muted small" style={{ margin: '6px 0 10px' }}>{hint}</p>
+        {list.map((v) => <video key={v.id} className="vid" src={v.url} controls playsInline preload="metadata" />)}
+        {st && !st.error && <div className="progress" style={{ margin: '8px 0 0' }}><div className="bar"><i style={{ width: `${pct}%` }} /></div><span>Envoi {pct} %</span></div>}
+        {st?.error && <div className="error small" style={{ marginBottom: 8 }}>{st.error}</div>}
+        {(!st || st.error) && (
+          <div className="row wrap-row">
+            {st?.error && st.file && <button className="small primary" onClick={() => uploadVideo(phase, st.file)}>Réessayer l'envoi</button>}
+            <button className="small" onClick={() => pickVideo(phase)}><IconVideo /> {list.length ? 'Refaire une vidéo' : 'Filmer le logement'}</button>
+          </div>
+        )}
+      </section>
+    );
+  };
   const lightbox = zoom && <div className="lightbox" onClick={() => setZoom(null)}><img src={zoom} alt="" /></div>;
 
   // Étape 1 : état des lieux à l'arrivée (photos de chaque pièce + état + commentaire)
@@ -231,8 +306,10 @@ export default function StaffCleaning({ params }) {
     const validateArrival = async () => {
       setError('');
       if (pending.length) { setError('Attends que toutes les photos soient envoyées.'); return; }
+      if (videoBusy('arrivee')) { setError("Attends la fin de l'envoi de la vidéo."); return; }
       if (missingAreas.length) { setError(`Prends une photo de : ${missingAreas.map((a) => a.label).join(', ')}.`); return; }
       if (!arrState) { setError("Indique l'état du logement."); return; }
+      if (!hasVideo('arrivee') && !confirm("Pas de vidéo du logement à l'arrivée.\n\nContinuer sans vidéo ?")) return;
       setBusy(true);
       const r = await fetch(`/api/staff/cleanings/${id}/arrival`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ state: arrState, note: arrNote }) });
       setBusy(false);
@@ -263,6 +340,7 @@ export default function StaffCleaning({ params }) {
             <textarea value={arrNote} placeholder="Facultatif : casse, tache, objet manquant, odeur…" onChange={(e) => setArrNote(e.target.value)} />
           </label>
         </section>
+        {videoCard('arrivee', 'Vidéo du logement', "Avant de toucher à quoi que ce soit : une vidéo de 30 à 40 secondes en passant dans toutes les pièces.")}
         <h3 style={{ margin: '22px 0 0' }}>Photos de chaque pièce</h3>
         {ARRIVAL_AREAS.map((a) => (
           <section key={a.key} className="card">
@@ -317,6 +395,8 @@ export default function StaffCleaning({ params }) {
           ))}
         </section>
       ))}
+
+      {videoCard('menage', 'Vidéo après le ménage', 'Une fois tout terminé : une vidéo de 30 à 40 secondes du logement propre, dans toutes les pièces.')}
 
       <section className="card">
         <h3>Autres photos</h3>

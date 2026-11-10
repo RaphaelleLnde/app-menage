@@ -6,9 +6,9 @@ import '@fontsource/montserrat/700.css';
 import './globals.css';
 
 export const metadata = {
-  title: 'Ménage',
+  title: 'Ménage Le Central',
   robots: { index: false, follow: false },
-  appleWebApp: { capable: true, title: 'Ménage', statusBarStyle: 'default' },
+  appleWebApp: { capable: true, title: 'Ménage Le Central', statusBarStyle: 'default' },
   icons: { icon: '/icon-192.png', apple: '/apple-touch-icon.png' },
 };
 export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#F3EEE6' };

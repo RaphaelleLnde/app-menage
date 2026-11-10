@@ -5,6 +5,11 @@ import { useHostData, HostPage, useRole } from '@/app/components/host';
 import { Back } from '@/app/components/TopBar';
 import { IconLeft, IconRight } from '@/app/components/icons';
 import { STATUS, fmtDay } from '@/app/components/client-utils';
+import Horaires from '@/app/components/Horaires';
+import { IconCopy } from '@/app/components/icons';
+import { stateInfo, stateLabel } from '@/lib/arrival';
+import { buildReview } from '@/lib/review';
+import Smiley from '@/app/components/Smiley';
 
 const DN = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 const PLATFORM = {
@@ -68,12 +73,6 @@ export default function Reservations() {
     setSel(today.slice(0, 7) === month ? today : first);
   }, [d, month]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const saveName = async (c, name) => {
-    if ((c.guest_name || '') === name.trim()) return;
-    await fetch(`/api/host/cleanings/${c.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guest_name: name }) });
-    host.reload();
-  };
-
   const selStays = sel ? staysOn(sel) : [];
 
   return (
@@ -125,42 +124,154 @@ export default function Reservations() {
         <>
           <h2>{fmtDay(sel, today)}</h2>
           {selStays.length === 0 && <p className="muted">Logement libre ce jour-là.</p>}
-          {selStays.map((s) => {
-            const pfKey = platformOf(s);
-            const pf = PLATFORM[pfKey];
-            const n = diffDays(s.checkin_date, s.date);
-            return (
-              <div key={s.id} className="card">
-                <div className="row between">
-                  <span className={`badge ${pf.cls}`}>{pf.label}</span>
-                  <span className="small muted">
-                    {s.checkin_date === sel ? 'Arrivée ce jour' : s.date === sel ? 'Départ ce jour' : 'En cours de séjour'}
-                  </span>
-                </div>
-                <p style={{ margin: '10px 0 0', fontWeight: 600 }}>Du {short(s.checkin_date)} au {short(s.date)}</p>
-                <p className="muted small" style={{ margin: '2px 0 0' }}>
-                  {n} nuit{n > 1 ? 's' : ''}
-                  {!concierge && s.resa_code && <> · Réservation {s.resa_code}</>}
-                  {!concierge && s.guest_phone4 && <> · Tél. ••• {s.guest_phone4}</>}
-                </p>
-                {concierge ? (s.guest_name && <p style={{ margin: '8px 0' }}>Voyageur : <b>{s.guest_name}</b></p>) : (
-                <label className="field" style={{ marginBottom: 6 }}>
-                  <span>Voyageur</span>
-                  <input key={s.id + (s.guest_name || '')} type="text" defaultValue={s.guest_name || ''} placeholder="Nom du voyageur (à saisir)"
-                    onBlur={(e) => saveName(s, e.target.value)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} />
-                </label>
-                )}
-                <div className="row wrap-row">
-                  {!concierge && pfKey === 'airbnb' && s.resa_code && <a className="btn small" href={`https://www.airbnb.fr/hosting/reservations/details/${s.resa_code}`} target="_blank" rel="noreferrer">Voir sur Airbnb</a>}
-                  {!concierge && pfKey === 'booking' && <a className="btn small" href="https://admin.booking.com/" target="_blank" rel="noreferrer">Ouvrir l'extranet Booking</a>}
-                  <Link className="btn small ghost" href={s.status === 'done' || s.status === 'in_progress' ? `/admin/c/${s.id}` : '/admin/calendrier'}>Ménage du {short(s.date)} : {STATUS[s.status].toLowerCase()}</Link>
-                </div>
-              </div>
-            );
-          })}
-          {!concierge && <p className="muted small" style={{ marginTop: 16 }}>Airbnb et Booking ne transmettent pas le nom des voyageurs dans leurs calendriers : tu peux le saisir ici, il sera retenu.</p>}
+          {selStays.map((s) => <StayCard key={s.id} s={s} sel={sel} today={today} concierge={concierge} reload={host.reload} />)}
         </>
       )}
     </HostPage>
+  );
+}
+
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch {
+    // Repli pour les navigateurs qui refusent l'accès au presse-papiers
+    const ta = document.createElement('textarea');
+    ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  }
+}
+
+// Commentaire d'évaluation proposé à partir de l'état des lieux du ménage de départ
+function ReviewBox({ s }) {
+  const [lang, setLang] = useState('fr');
+  const base = buildReview(s, lang);
+  const [text, setText] = useState(base?.text || '');
+  const [priv, setPriv] = useState(base?.privateNote || '');
+  const [copied, setCopied] = useState('');
+  useEffect(() => { const r = buildReview(s, lang); setText(r?.text || ''); setPriv(r?.privateNote || ''); }, [lang, s.arrival_state, s.arrival_note]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!base) return null;
+  const si = stateInfo(s.arrival_state);
+  const copy = async (t, what) => { if (await copyText(t)) { setCopied(what); setTimeout(() => setCopied(''), 2500); } };
+  return (
+    <div className="review">
+      <div className="row between wrap-row">
+        <b>Évaluer le voyageur</b>
+        <div className="seg" style={{ margin: 0 }}>
+          <button className={lang === 'fr' ? 'on' : ''} onClick={() => setLang('fr')}>Français</button>
+          <button className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>English</button>
+        </div>
+      </div>
+      <p className="small" style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+        {si && <Smiley color={si.color} mood={si.mood} size={18} />}
+        Logement rendu : <b>{stateLabel(s.arrival_state).toLowerCase()}</b>{s.arrival_note ? ` (« ${s.arrival_note} »)` : ''}
+      </p>
+      <label className="field" style={{ marginBottom: 6 }}>
+        <span>Commentaire public</span>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} />
+      </label>
+      <button className="small primary" onClick={() => copy(text, 'pub')}><IconCopy /> {copied === 'pub' ? 'Copié !' : 'Copier le commentaire'}</button>
+      {priv && (
+        <label className="field" style={{ margin: '12px 0 6px' }}>
+          <span>Message privé au voyageur (facultatif)</span>
+          <textarea style={{ minHeight: 80 }} value={priv} onChange={(e) => setPriv(e.target.value)} />
+        </label>
+      )}
+      {priv && <button className="small" onClick={() => copy(priv, 'priv')}><IconCopy /> {copied === 'priv' ? 'Copié !' : 'Copier le message privé'}</button>}
+      <p className="stars">{base.allFive
+        ? <>Notes conseillées : <b>5 ★ partout</b> (propreté, communication, respect du règlement) · recommander : oui.</>
+        : <>Notes conseillées : propreté {'★'.repeat(base.cleanliness)}{'☆'.repeat(5 - base.cleanliness)} · communication et respect du règlement à ton avis · recommander : {base.recommend ? 'oui' : 'non'}.</>}</p>
+    </div>
+  );
+}
+
+function StayCard({ s, sel, today, concierge, reload }) {
+  const pfKey = platformOf(s);
+  const pf = PLATFORM[pfKey];
+  const n = diffDays(s.checkin_date, s.date);
+  const [out, setOut] = useState(s.checkout_time || '');
+  const [inn, setInn] = useState(s.checkin_time || '');
+  const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const changed = out !== (s.checkout_time || '') || inn !== (s.checkin_time || '');
+
+  const patch = async (body) => {
+    const r = await fetch(`/api/host/cleanings/${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return [r.ok, await r.json()];
+  };
+  const saveMemo = async (v) => {
+    if ((s.host_memo || '') === v.trim()) return;
+    await patch({ host_memo: v });
+    reload();
+  };
+  const saveTimes = async (notify) => {
+    setBusy(true); setMsg('');
+    const [ok, d] = await patch({ checkout_time: out || null, checkin_time: inn || null, notify_concierge: notify });
+    setBusy(false);
+    if (!ok) { setMsg(d.error || 'Erreur'); return; }
+    setMsg(notify ? (d.notified ? 'Enregistré, la conciergerie a été prévenue.' : 'Enregistré (rien de nouveau à signaler).') : 'Enregistré : visible par le personnel et la conciergerie.');
+    reload();
+  };
+
+  return (
+    <div className="card">
+      <div className="row between">
+        <span className={`badge ${pf.cls}`}>{pf.label}</span>
+        <span className="small muted">
+          {s.checkin_date === sel ? 'Arrivée ce jour' : s.date === sel ? 'Départ ce jour' : 'En cours de séjour'}
+        </span>
+      </div>
+      <p style={{ margin: '10px 0 0', fontWeight: 600 }}>Du {short(s.checkin_date)} au {short(s.date)}</p>
+      <p className="muted small" style={{ margin: '2px 0 0' }}>
+        {n} nuit{n > 1 ? 's' : ''}
+        {!concierge && s.resa_code && <> · Réservation {s.resa_code}</>}
+        {!concierge && s.guest_phone4 && <> · Tél. ••• {s.guest_phone4}</>}
+      </p>
+
+      {concierge ? (
+        <Horaires late={s.checkout_time} early={s.checkin_time} style={{ marginTop: 10 }} />
+      ) : (
+        <div style={{ marginTop: 12 }}>
+          <span className="field-label">Horaires particuliers</span>
+          <div className="time-row">
+            <label className="field" style={{ margin: 0 }}>
+              <span className="small">Arrivée anticipée, le {short(s.checkin_date)}</span>
+              <input type="time" value={inn} onChange={(e) => setInn(e.target.value)} />
+            </label>
+            <label className="field" style={{ margin: 0 }}>
+              <span className="small">Départ tardif, le {short(s.date)}</span>
+              <input type="time" value={out} onChange={(e) => setOut(e.target.value)} />
+            </label>
+          </div>
+          {changed && (
+            <div className="row wrap-row" style={{ marginTop: 8 }}>
+              <button className="small primary" onClick={() => saveTimes(true)} disabled={busy}>Enregistrer et prévenir la conciergerie</button>
+              <button className="small" onClick={() => saveTimes(false)} disabled={busy}>Enregistrer seulement</button>
+            </div>
+          )}
+          {msg && <p className="small" style={{ margin: '6px 0 0', color: 'var(--ok)' }}>{msg}</p>}
+        </div>
+      )}
+
+      {!concierge && (
+        <label className="field" style={{ margin: '12px 0 6px' }}>
+          <span>Mes remarques sur ce séjour</span>
+          <textarea key={s.id + (s.host_memo || '')} defaultValue={s.host_memo || ''} style={{ minHeight: 70 }}
+            placeholder="Pour toi seulement : comment ça s'est passé, échanges avec le voyageur, à retenir…"
+            onBlur={(e) => saveMemo(e.target.value)} />
+        </label>
+      )}
+
+      {!concierge && s.date <= today && (s.arrival_done_at
+        ? <ReviewBox s={s} />
+        : <p className="muted small" style={{ margin: '10px 0' }}>Le commentaire d'évaluation sera proposé ici quand l'état des lieux du ménage de départ sera fait.</p>)}
+
+      <div className="row wrap-row" style={{ marginTop: 10 }}>
+        {!concierge && pfKey === 'airbnb' && s.resa_code && <a className="btn small" href={`https://www.airbnb.fr/hosting/reservations/details/${s.resa_code}`} target="_blank" rel="noreferrer">Voir sur Airbnb</a>}
+        {!concierge && pfKey === 'booking' && <a className="btn small" href="https://admin.booking.com/" target="_blank" rel="noreferrer">Ouvrir l'extranet Booking</a>}
+        <Link className="btn small ghost" href={s.status === 'done' || s.status === 'in_progress' ? `/admin/c/${s.id}` : '/admin/calendrier'}>Ménage du {short(s.date)} : {STATUS[s.status].toLowerCase()}</Link>
+      </div>
+    </div>
   );
 }

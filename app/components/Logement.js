@@ -105,6 +105,11 @@ export default function Logement({ info }) {
         </button>
         {open === 'access' && (
           <div className="acc-body">
+            <div className="code" style={{ marginBottom: 10 }}>
+              <span>Code de la porte de l'immeuble</span>
+              <b>{info?.door?.code || '…'}</b>
+              {info?.door?.updated_at && Date.now() - new Date(info.door.updated_at).getTime() < 14 * 86400000 && <em>Code changé le {fmtDate(info.door.updated_at)}</em>}
+            </div>
             <div className="code">
               <span>Code de la boîte à clés</span>
               <b>{info?.keybox?.code || '…'}</b>
@@ -112,7 +117,7 @@ export default function Logement({ info }) {
             </div>
             <h3 style={{ marginTop: 18 }}>Récupérer les clés</h3>
             <Steps items={[
-              "Entrez dans le hall de l'immeuble.",
+              `Tapez le code ${info?.door?.code || ''} sur le digicode de la porte de l'immeuble, puis entrez dans le hall.`,
               'Allez aux boîtes aux lettres.',
               'Ouvrez la boîte aux lettres tout en bas à gauche, au nom « Le Central ».',
               'La boîte à clés est tout au fond de la boîte aux lettres.',

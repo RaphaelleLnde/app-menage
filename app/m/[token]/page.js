@@ -5,6 +5,7 @@ import { STATUS, fmtDay, turnoverLabel } from '@/app/components/client-utils';
 import TopBar, { HOST_NAME, HOST_PHONE } from '@/app/components/TopBar';
 import { IconBroom } from '@/app/components/icons';
 import Logement, { Photos } from '@/app/components/Logement';
+import Horaires from '@/app/components/Horaires';
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
@@ -71,6 +72,7 @@ export default function StaffHome({ params }) {
                     : turnoverLabel(c) && <div className="small" style={{ opacity: .8 }}>{turnoverLabel(c)}</div>}
                   {c.status === 'in_progress' && c.cleaner_name && <div className="small" style={{ opacity: .8 }}>Commencé par {c.cleaner_name}</div>}
                   {c.host_note && c.status !== 'done' && <div className="small" style={{ fontWeight: 600, color: c.date === data.today ? '#F3D9A8' : 'var(--gold)' }}>Consigne de l'hôte</div>}
+                  {c.status !== 'done' && <Horaires late={c.late_checkout} early={c.early_checkin} light={c.date === data.today} style={{ marginTop: 6 }} />}
                 </div>
               </Link>
             ))}

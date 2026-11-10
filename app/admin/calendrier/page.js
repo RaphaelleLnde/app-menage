@@ -6,6 +6,8 @@ import { Back } from '@/app/components/TopBar';
 import { IconBroom, IconLeft, IconRight } from '@/app/components/icons';
 import ConsignesSheet from '@/app/components/ConsignesSheet';
 import { STATUS, fmtDay, fmtTime } from '@/app/components/client-utils';
+import Horaires from '@/app/components/Horaires';
+import { cleaningTimes, fmtHour } from '@/lib/horaires';
 
 const DN = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -120,6 +122,7 @@ export default function Calendar() {
                 {c.source === 'ical' ? `${(c.ical_uid || '').startsWith('booking:') ? 'Booking' : 'Airbnb'} · départ des voyageurs arrivés ${fmtDay(c.checkin_date, today).toLowerCase()}` : 'Ajouté à la main'}
                 {c.next_checkin === c.date && <><br /><b style={{ color: 'var(--gold)' }}>Nouveaux voyageurs le jour même</b></>}
               </p>
+              {(() => { const t = cleaningTimes(c, cleanings); return <Horaires late={t.late_checkout} early={t.early_checkin} style={{ marginTop: 10 }} />; })()}
               {c.status === 'in_progress' && <p className="small" style={{ margin: '6px 0 0' }}>{c.cleaner_name}, depuis {fmtTime(c.started_at)}</p>}
               {(c.host_note || (c.extra_tasks || []).length > 0) && (
                 <div className="callout small" style={{ margin: '10px 0 0' }}>
@@ -148,7 +151,7 @@ export default function Calendar() {
           {arrivals.map((s) => (
             <div key={'a' + s.id} className="callout">
               <b>Arrivée de voyageurs</b>
-              <span className="muted small">Séjour jusqu'au {fmtDay(s.date).toLowerCase()}</span>
+              <span className="muted small">Séjour jusqu'au {fmtDay(s.date).toLowerCase()}{s.checkin_time && <>, <b style={{ color: 'var(--gold)' }}>arrivée anticipée à {fmtHour(s.checkin_time)}</b></>}</span>
             </div>
           ))}
           {!concierge && <button className="small" style={{ marginTop: 8 }} onClick={() => add(sel)}>+ Ajouter un ménage ce jour</button>}

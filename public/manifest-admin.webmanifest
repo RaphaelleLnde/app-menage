@@ -1,13 +1,14 @@
 {
-  "name": "Ménage - Espace hôte",
-  "short_name": "Ménage hôte",
+  "name": "Ménage Le Central",
+  "short_name": "Ménage Le Central",
   "start_url": "/admin",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f6f5f2",
-  "theme_color": "#2f6f5e",
+  "background_color": "#F3EEE6",
+  "theme_color": "#1E3E8A",
   "lang": "fr",
   "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
