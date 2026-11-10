@@ -2,8 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { T, LANGS } from './i18n';
 import PhoneInput from './PhoneInput';
+import DateInput from './DateInput';
 
-const emptyTraveller = () => ({ last_name: '', first_names: '', birth_date: '', birth_place: '', nationality: '', address: '', phone: '', email: '', signature: '' });
+const emptyTraveller = () => ({ _k: Math.random(), last_name: '', first_names: '', birth_date: '', birth_city: '', birth_country: '', nationality: '', address: '', phone: '', email: '', signature: '' });
 
 // Zone de signature au doigt
 function SignaturePad({ value, onChange, t }) {
@@ -61,7 +62,7 @@ export default function GuestForm({ code }) {
     setErr(''); setBusy(true);
     const r = await fetch(`/api/guest/${code}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...stay, lang, all_french: allFrench, travellers: allFrench ? [] : travellers, children: allFrench ? [] : children }),
+      body: JSON.stringify({ ...stay, lang, all_french: allFrench, travellers: allFrench ? [] : travellers.map(({ birth_city, birth_country, ...x }) => ({ ...x, birth_place: `${birth_city.trim()}, ${birth_country.trim()}` })), children: allFrench ? [] : children }),
     }).catch(() => null);
     setBusy(false);
     if (!r || !r.ok) { const d = r ? await r.json().catch(() => ({})) : {}; setErr(t.errors[d.error] || t.errors.network); return; }
@@ -83,7 +84,7 @@ export default function GuestForm({ code }) {
   const next3 = () => {
     setErr('');
     for (const x of travellers) {
-      if (!x.last_name.trim() || !x.first_names.trim() || !x.birth_date || !x.birth_place.trim() || !x.nationality.trim() || !x.address.trim() || !x.phone.trim() || !x.email.trim()) return setErr(t.errors.fields);
+      if (!x.last_name.trim() || !x.first_names.trim() || !x.birth_date || !x.birth_city.trim() || !x.birth_country.trim() || !x.nationality.trim() || !x.address.trim() || !x.phone.trim() || !x.email.trim()) return setErr(t.errors.fields);
       if (!x.signature) return setErr(t.errors.signature);
     }
     if (!certify) return setErr(t.errors.certify);
@@ -111,9 +112,9 @@ export default function GuestForm({ code }) {
             <section className="card">
               {field(t.leadName, stay.lead_name, (v) => setStay({ ...stay, lead_name: v }), { autoComplete: 'name' })}
               <PhoneInput label={t.leadPhone} value={stay.lead_phone} lang={lang} onChange={(v) => setStay((cur) => ({ ...cur, lead_phone: v }))} />
-              <div className="time-row">
-                {field(t.arrival, stay.arrival, (v) => setStay({ ...stay, arrival: v }), { type: 'date' })}
-                {field(t.departure, stay.departure, (v) => setStay({ ...stay, departure: v }), { type: 'date' })}
+              <div>
+                <DateInput label={t.arrival} value={stay.arrival} placeholder={t.datePh} onChange={(v) => setStay((cur) => ({ ...cur, arrival: v }))} />
+                <DateInput label={t.departure} value={stay.departure} placeholder={t.datePh} onChange={(v) => setStay((cur) => ({ ...cur, departure: v }))} />
               </div>
               <input type="text" name="website" tabIndex={-1} autoComplete="off" style={{ display: 'none' }} />
             </section>
@@ -141,19 +142,20 @@ export default function GuestForm({ code }) {
 
         {step === 3 && (
           <>
-            <p className="lead">{t.formIntro}</p>
+            <p className="lead" style={{ whiteSpace: 'pre-line' }}>{t.formIntro}</p>
             <p className="privacy">{t.privacy}</p>
             {travellers.map((x, i) => (
-              <section key={i} className="card">
+              <section key={x._k} className="card">
                 <div className="row between">
                   <h3 style={{ margin: 0 }}>{t.traveller} {i + 1}</h3>
                   {travellers.length > 1 && <button className="small ghost" onClick={() => setTravellers(travellers.filter((_, j) => j !== i))}>{t.remove}</button>}
                 </div>
                 {field(t.lastName, x.last_name, (v) => setTr(i, 'last_name', v), { autoComplete: 'family-name' })}
                 {field(t.firstNames, x.first_names, (v) => setTr(i, 'first_names', v), { autoComplete: 'given-name' })}
-                <div className="time-row">
-                  {field(t.birthDate, x.birth_date, (v) => setTr(i, 'birth_date', v), { type: 'date' })}
-                  {field(t.birthPlace, x.birth_place, (v) => setTr(i, 'birth_place', v), { placeholder: t.birthPlaceHint })}
+                <div>
+                  <DateInput label={t.birthDate} value={x.birth_date} placeholder={t.datePh} onChange={(v) => setTr(i, 'birth_date', v)} />
+                  {field(t.birthCity, x.birth_city, (v) => setTr(i, 'birth_city', v))}
+                  {field(t.birthCountry, x.birth_country, (v) => setTr(i, 'birth_country', v))}
                 </div>
                 {field(t.nationality, x.nationality, (v) => setTr(i, 'nationality', v))}
                 <label className="field"><span>{t.address}</span><textarea value={x.address} placeholder={t.addressHint} style={{ minHeight: 70 }} onChange={(e) => setTr(i, 'address', e.target.value)} /></label>
@@ -169,13 +171,13 @@ export default function GuestForm({ code }) {
               <h3 style={{ marginTop: 0 }}>{t.children}</h3>
               <p className="muted small" style={{ marginTop: 0 }}>{t.childrenHelp}</p>
               {children.map((c, i) => (
-                <div key={i} style={{ borderTop: i ? '1px solid var(--line)' : 0, paddingTop: i ? 10 : 0 }}>
-                  <div className="time-row">
+                <div key={c._k} style={{ borderTop: i ? '1px solid var(--line)' : 0, paddingTop: i ? 10 : 0 }}>
+                  <div>
                     {field(t.lastName, c.last_name, (v) => setCh(i, 'last_name', v))}
                     {field(t.firstNames, c.first_names, (v) => setCh(i, 'first_names', v))}
                   </div>
-                  <div className="time-row">
-                    {field(t.birthDate, c.birth_date, (v) => setCh(i, 'birth_date', v), { type: 'date' })}
+                  <div>
+                    <DateInput label={t.birthDate} value={c.birth_date} placeholder={t.datePh} onChange={(v) => setCh(i, 'birth_date', v)} />
                     <label className="field"><span>{t.parent}</span>
                       <select value={c.parent} onChange={(e) => setCh(i, 'parent', e.target.value)}>
                         <option value="">-</option>
@@ -186,7 +188,7 @@ export default function GuestForm({ code }) {
                   <button className="small ghost" onClick={() => setChildren(children.filter((_, j) => j !== i))}>{t.remove}</button>
                 </div>
               ))}
-              <button className="small" onClick={() => setChildren([...children, { last_name: '', first_names: '', birth_date: '', parent: '' }])}>+ {t.addChild}</button>
+              <button className="small" onClick={() => setChildren([...children, { _k: Math.random(), last_name: '', first_names: '', birth_date: '', parent: '' }])}>+ {t.addChild}</button>
             </section>
 
             <label className="row" style={{ alignItems: 'flex-start', gap: 10, margin: '16px 0' }}>

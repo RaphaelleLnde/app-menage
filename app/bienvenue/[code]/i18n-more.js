@@ -1,6 +1,7 @@
 // Langues supplémentaires du formulaire voyageur : italien, néerlandais, polonais, portugais, ukrainien, géorgien, arabe
 export const MORE = {
   it: {
+    birthCity: "Città di nascita", birthCountry: "Paese di nascita", datePh: "GG/MM/AAAA",
     privacy: "I vostri dati vengono cancellati automaticamente dopo 6 mesi, in conformità con la legge francese.",
     welcome: 'Benvenuti', title: 'Prima del vostro arrivo',
     intro: 'Vi chiediamo di rispondere a queste poche domande prima del vostro soggiorno a Le Central, 13 rue de la Sinne a Mulhouse. Ci vogliono 2 minuti.',
@@ -9,7 +10,7 @@ export const MORE = {
     frenchQ: 'Tutti i viaggiatori sono di nazionalità francese?',
     frenchHelp: 'La legge francese richiede ai viaggiatori di nazionalità straniera di compilare una scheda di polizia. Se sono tutti francesi, non c’è altro da fare.',
     yesAll: 'Sì, tutti francesi', no: 'No',
-    formIntro: 'Una scheda per ogni viaggiatore adulto di nazionalità straniera (i viaggiatori francesi non devono compilare nulla). I bambini sotto i 15 anni possono essere aggiunti in basso, sulla scheda di un genitore.',
+    formIntro: "Una scheda per ogni viaggiatore adulto di nazionalità straniera.\nI viaggiatori di nazionalità francese non devono compilare nulla.\nI bambini sotto i 15 anni possono essere aggiunti in basso, sulla scheda di un genitore.",
     traveller: 'Viaggiatore', remove: 'Rimuovi',
     lastName: 'Cognome', firstNames: 'Nome/i', birthDate: 'Data di nascita', birthPlace: 'Luogo di nascita', birthPlaceHint: 'Città, paese',
     nationality: 'Nazionalità', address: 'Indirizzo di residenza', addressHint: 'Via, CAP, città, paese',
@@ -27,6 +28,7 @@ export const MORE = {
     errors: { phone: 'Indicate un numero di telefono.', name: 'Indicate il nome della persona che ha prenotato.', dates: 'Controllate le date (la partenza deve essere dopo l’arrivo).', fields: 'Compilate tutti i campi per ogni viaggiatore.', signature: 'Ogni viaggiatore deve firmare nel riquadro.', certify: 'Spuntate la casella per certificare le informazioni.', travellers: 'Aggiungete almeno un viaggiatore.', network: 'Invio non riuscito, controllate la connessione e riprovate.', not_found: 'Questo link non è più valido.' },
   },
   nl: {
+    birthCity: "Geboorteplaats", birthCountry: "Geboorteland", datePh: "DD/MM/JJJJ",
     privacy: "Uw gegevens worden na 6 maanden automatisch verwijderd, in overeenstemming met de Franse wet.",
     welcome: 'Welkom', title: 'Vóór uw aankomst',
     intro: 'Wilt u deze paar vragen beantwoorden vóór uw verblijf in Le Central, 13 rue de la Sinne in Mulhouse? Het duurt 2 minuten.',
@@ -35,7 +37,7 @@ export const MORE = {
     frenchQ: 'Hebben alle gasten de Franse nationaliteit?',
     frenchHelp: 'De Franse wet verplicht gasten met een buitenlandse nationaliteit een politieregistratieformulier in te vullen. Als iedereen Frans is, hoeft u verder niets te doen.',
     yesAll: 'Ja, allemaal Frans', no: 'Nee',
-    formIntro: 'Eén formulier per volwassen gast met een buitenlandse nationaliteit (Franse gasten hoeven niets in te vullen). Kinderen jonger dan 15 kunnen hieronder op het formulier van een ouder worden toegevoegd.',
+    formIntro: "Eén formulier per volwassen gast met een buitenlandse nationaliteit.\nGasten met de Franse nationaliteit hoeven niets in te vullen.\nKinderen jonger dan 15 kunnen hieronder op het formulier van een ouder worden toegevoegd.",
     traveller: 'Gast', remove: 'Verwijderen',
     lastName: 'Achternaam', firstNames: 'Voornaam/-namen', birthDate: 'Geboortedatum', birthPlace: 'Geboorteplaats', birthPlaceHint: 'Stad, land',
     nationality: 'Nationaliteit', address: 'Woonadres', addressHint: 'Straat, postcode, plaats, land',
@@ -53,6 +55,7 @@ export const MORE = {
     errors: { phone: 'Vul een telefoonnummer in.', name: 'Vul de naam in van de persoon die heeft geboekt.', dates: 'Controleer de data (vertrek moet na aankomst zijn).', fields: 'Vul alle velden voor elke gast in.', signature: 'Elke gast moet in het vak tekenen.', certify: 'Vink het vakje aan om de gegevens te bevestigen.', travellers: 'Voeg minstens één gast toe.', network: 'Versturen mislukt, controleer uw verbinding en probeer opnieuw.', not_found: 'Deze link is niet meer geldig.' },
   },
   pl: {
+    birthCity: "Miasto urodzenia", birthCountry: "Kraj urodzenia", datePh: "DD/MM/RRRR",
     privacy: "Państwa dane są automatycznie usuwane po 6 miesiącach, zgodnie z prawem francuskim.",
     welcome: 'Witamy', title: 'Przed przyjazdem',
     intro: 'Prosimy o odpowiedź na kilka pytań przed pobytem w Le Central, 13 rue de la Sinne w Miluzie. To zajmie 2 minuty.',
@@ -61,7 +64,7 @@ export const MORE = {
     frenchQ: 'Czy wszyscy goście mają obywatelstwo francuskie?',
     frenchHelp: 'Prawo francuskie wymaga, aby goście z obywatelstwem innym niż francuskie wypełnili kartę meldunkową dla policji. Jeśli wszyscy są Francuzami, nie trzeba nic więcej robić.',
     yesAll: 'Tak, wszyscy Francuzi', no: 'Nie',
-    formIntro: 'Jedna karta na każdego dorosłego gościa z obywatelstwem innym niż francuskie (goście z Francji nic nie wypełniają). Dzieci poniżej 15 lat można dodać niżej, na karcie rodzica.',
+    formIntro: "Jedna karta na każdego dorosłego gościa z obywatelstwem innym niż francuskie.\nGoście z obywatelstwem francuskim nic nie wypełniają.\nDzieci poniżej 15 lat można dodać niżej, na karcie rodzica.",
     traveller: 'Gość', remove: 'Usuń',
     lastName: 'Nazwisko', firstNames: 'Imię (imiona)', birthDate: 'Data urodzenia', birthPlace: 'Miejsce urodzenia', birthPlaceHint: 'Miasto, kraj',
     nationality: 'Obywatelstwo', address: 'Adres zamieszkania', addressHint: 'Ulica, kod pocztowy, miasto, kraj',
@@ -79,6 +82,7 @@ export const MORE = {
     errors: { phone: 'Podaj numer telefonu.', name: 'Podaj imię i nazwisko osoby rezerwującej.', dates: 'Sprawdź daty (wyjazd musi być po przyjeździe).', fields: 'Wypełnij wszystkie pola dla każdego gościa.', signature: 'Każdy gość musi się podpisać w ramce.', certify: 'Zaznacz pole, aby potwierdzić dane.', travellers: 'Dodaj co najmniej jednego gościa.', network: 'Nie udało się wysłać, sprawdź połączenie i spróbuj ponownie.', not_found: 'Ten link jest już nieaktualny.' },
   },
   pt: {
+    birthCity: "Cidade de nascimento", birthCountry: "País de nascimento", datePh: "DD/MM/AAAA",
     privacy: "Os seus dados são eliminados automaticamente após 6 meses, de acordo com a lei francesa.",
     welcome: 'Bem-vindos', title: 'Antes da sua chegada',
     intro: 'Pedimos que responda a estas perguntas antes da sua estadia no Le Central, 13 rue de la Sinne em Mulhouse. Demora 2 minutos.',
@@ -87,7 +91,7 @@ export const MORE = {
     frenchQ: 'Todos os hóspedes têm nacionalidade francesa?',
     frenchHelp: 'A lei francesa exige que os hóspedes de nacionalidade estrangeira preencham uma ficha de registo policial. Se todos forem franceses, não há mais nada a fazer.',
     yesAll: 'Sim, todos franceses', no: 'Não',
-    formIntro: 'Uma ficha por cada hóspede adulto de nacionalidade estrangeira (os hóspedes franceses não preenchem nada). As crianças com menos de 15 anos podem ser acrescentadas abaixo, na ficha de um dos pais.',
+    formIntro: "Uma ficha por cada hóspede adulto de nacionalidade estrangeira.\nOs hóspedes de nacionalidade francesa não preenchem nada.\nAs crianças com menos de 15 anos podem ser acrescentadas abaixo, na ficha de um dos pais.",
     traveller: 'Hóspede', remove: 'Remover',
     lastName: 'Apelido', firstNames: 'Nome(s) próprio(s)', birthDate: 'Data de nascimento', birthPlace: 'Local de nascimento', birthPlaceHint: 'Cidade, país',
     nationality: 'Nacionalidade', address: 'Morada habitual', addressHint: 'Rua, código postal, cidade, país',
@@ -105,6 +109,7 @@ export const MORE = {
     errors: { phone: 'Indique um número de telefone.', name: 'Indique o nome da pessoa que reservou.', dates: 'Verifique as datas (a partida tem de ser depois da chegada).', fields: 'Preencha todos os campos de cada hóspede.', signature: 'Cada hóspede tem de assinar no quadro.', certify: 'Assinale a caixa para certificar as informações.', travellers: 'Acrescente pelo menos um hóspede.', network: 'Não foi possível enviar, verifique a ligação e tente de novo.', not_found: 'Esta ligação já não é válida.' },
   },
   uk: {
+    birthCity: "Місто народження", birthCountry: "Країна народження", datePh: "ДД/ММ/РРРР",
     privacy: "Ваші дані автоматично видаляються через 6 місяців відповідно до законодавства Франції.",
     welcome: 'Ласкаво просимо', title: 'Перед вашим приїздом',
     intro: 'Будь ласка, дайте відповідь на кілька запитань перед проживанням у Le Central, 13 rue de la Sinne, Мюлуз. Це займе 2 хвилини.',
@@ -113,7 +118,7 @@ export const MORE = {
     frenchQ: 'Чи всі гості мають французьке громадянство?',
     frenchHelp: 'Закон Франції вимагає, щоб гості з іноземним громадянством заповнили поліцейську реєстраційну картку. Якщо всі гості французи, більше нічого робити не потрібно.',
     yesAll: 'Так, усі французи', no: 'Ні',
-    formIntro: 'Одна картка на кожного дорослого гостя з іноземним громадянством (гостям з Франції нічого заповнювати не треба). Дітей до 15 років можна додати нижче, до картки одного з батьків.',
+    formIntro: "Одна картка на кожного дорослого гостя з іноземним громадянством.\nГостям із французьким громадянством нічого заповнювати не потрібно.\nДітей до 15 років можна додати нижче, до картки одного з батьків.",
     traveller: 'Гість', remove: 'Видалити',
     lastName: 'Прізвище', firstNames: "Ім'я", birthDate: 'Дата народження', birthPlace: 'Місце народження', birthPlaceHint: 'Місто, країна',
     nationality: 'Громадянство', address: 'Адреса постійного проживання', addressHint: 'Вулиця, індекс, місто, країна',
@@ -131,6 +136,7 @@ export const MORE = {
     errors: { phone: 'Вкажіть номер телефону.', name: "Вкажіть ім'я особи, яка бронювала.", dates: 'Перевірте дати (від’їзд має бути після приїзду).', fields: 'Заповніть усі поля для кожного гостя.', signature: 'Кожен гість має підписатися в рамці.', certify: 'Позначте поле, щоб підтвердити дані.', travellers: 'Додайте щонайменше одного гостя.', network: 'Не вдалося надіслати, перевірте з’єднання та спробуйте ще раз.', not_found: 'Це посилання більше не дійсне.' },
   },
   ka: {
+    birthCity: "დაბადების ქალაქი", birthCountry: "დაბადების ქვეყანა", datePh: "DD/MM/YYYY",
     privacy: "თქვენი მონაცემები ავტომატურად წაიშლება 6 თვის შემდეგ, საფრანგეთის კანონმდებლობის შესაბამისად.",
     welcome: 'კეთილი იყოს თქვენი მობრძანება', title: 'ჩამოსვლამდე',
     intro: 'გთხოვთ, უპასუხოთ რამდენიმე კითხვას Le Central-ში (13 rue de la Sinne, მიულუზი) დარჩენამდე. ეს 2 წუთს დაიკავებს.',
@@ -139,7 +145,7 @@ export const MORE = {
     frenchQ: 'ყველა სტუმარი საფრანგეთის მოქალაქეა?',
     frenchHelp: 'საფრანგეთის კანონით, უცხოელმა სტუმრებმა უნდა შეავსონ პოლიციის სარეგისტრაციო ბარათი. თუ ყველა საფრანგეთის მოქალაქეა, მეტი არაფერია გასაკეთებელი.',
     yesAll: 'დიახ, ყველა ფრანგია', no: 'არა',
-    formIntro: 'თითო ბარათი თითოეულ ზრდასრულ უცხოელ სტუმარზე (ფრანგ სტუმრებს არაფრის შევსება არ სჭირდებათ). 15 წლამდე ბავშვების დამატება შესაძლებელია ქვემოთ, ერთ-ერთი მშობლის ბარათზე.',
+    formIntro: "თითო ბარათი თითოეულ ზრდასრულ უცხოელ სტუმარზე.\nსაფრანგეთის მოქალაქე სტუმრებს არაფრის შევსება არ სჭირდებათ.\n15 წლამდე ბავშვების დამატება შესაძლებელია ქვემოთ, ერთ-ერთი მშობლის ბარათზე.",
     traveller: 'სტუმარი', remove: 'წაშლა',
     lastName: 'გვარი', firstNames: 'სახელი', birthDate: 'დაბადების თარიღი', birthPlace: 'დაბადების ადგილი', birthPlaceHint: 'ქალაქი, ქვეყანა',
     nationality: 'მოქალაქეობა', address: 'მუდმივი საცხოვრებელი მისამართი', addressHint: 'ქუჩა, საფოსტო ინდექსი, ქალაქი, ქვეყანა',
@@ -157,6 +163,7 @@ export const MORE = {
     errors: { phone: 'მიუთითეთ ტელეფონის ნომერი.', name: 'მიუთითეთ დამჯავშნელის სახელი.', dates: 'შეამოწმეთ თარიღები (წასვლა ჩამოსვლის შემდეგ უნდა იყოს).', fields: 'შეავსეთ ყველა ველი თითოეული სტუმრისთვის.', signature: 'ყველა სტუმარმა ჩარჩოში უნდა მოაწეროს ხელი.', certify: 'მონიშნეთ ველი ინფორმაციის დასადასტურებლად.', travellers: 'დაამატეთ მინიმუმ ერთი სტუმარი.', network: 'გაგზავნა ვერ მოხერხდა, შეამოწმეთ კავშირი და სცადეთ თავიდან.', not_found: 'ეს ბმული აღარ მოქმედებს.' },
   },
   ar: {
+    birthCity: "مدينة الميلاد", birthCountry: "بلد الميلاد", datePh: "DD/MM/YYYY",
     privacy: 'تُحذف بياناتكم تلقائيًا بعد 6 أشهر، وفقًا للقانون الفرنسي.',
     welcome: 'أهلًا وسهلًا', title: 'قبل وصولكم',
     intro: 'نرجو الإجابة على هذه الأسئلة القليلة قبل إقامتكم في Le Central، 13 rue de la Sinne في مولوز. لن يستغرق ذلك أكثر من دقيقتين.',
@@ -165,7 +172,7 @@ export const MORE = {
     frenchQ: 'هل جميع النزلاء يحملون الجنسية الفرنسية؟',
     frenchHelp: 'يفرض القانون الفرنسي على النزلاء من جنسيات أجنبية ملء استمارة تسجيل لدى الشرطة. إذا كان الجميع فرنسيين، فلا حاجة لأي إجراء آخر.',
     yesAll: 'نعم، جميعهم فرنسيون', no: 'لا',
-    formIntro: 'استمارة واحدة لكل نزيل بالغ من جنسية أجنبية (النزلاء الفرنسيون لا يملؤون شيئًا). يمكن إضافة الأطفال دون 15 سنة في الأسفل، على استمارة أحد الوالدين.',
+    formIntro: "استمارة واحدة لكل نزيل بالغ من جنسية أجنبية.\nالنزلاء من الجنسية الفرنسية لا يملؤون شيئًا.\nيمكن إضافة الأطفال دون 15 سنة في الأسفل، على استمارة أحد الوالدين.",
     traveller: 'النزيل', remove: 'حذف',
     lastName: 'اسم العائلة', firstNames: 'الاسم الأول', birthDate: 'تاريخ الميلاد', birthPlace: 'مكان الميلاد', birthPlaceHint: 'المدينة، البلد',
     nationality: 'الجنسية', address: 'عنوان السكن المعتاد', addressHint: 'الشارع، الرمز البريدي، المدينة، البلد',
